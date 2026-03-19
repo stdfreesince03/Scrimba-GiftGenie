@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import axios from 'axios';
 import {marked} from "marked";
 import DOMPurify from "dompurify";
+import useGeoLocation from "../hooks/useGeoLocation.ts";
 
 
 interface AIResponseParameter {
@@ -15,8 +16,9 @@ export default function AIResponse({isRubbed,prompt,onFinish}: AIResponseParamet
         return localStorage.getItem("ai_response") || "";
     });
 
-    const beUrl:string = import.meta.env.VITE_BE_URL;
+    const {error,geolocation} = useGeoLocation();
 
+    const beUrl:string = import.meta.env.VITE_BE_URL;
 
     useEffect(()=>{
         if(!isRubbed) return;
@@ -27,7 +29,13 @@ export default function AIResponse({isRubbed,prompt,onFinish}: AIResponseParamet
                     headers:{
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({prompt})
+                    body: JSON.stringify(
+                        {
+                            prompt,
+                            lat: geolocation?.latitude || null,
+                            lon: geolocation?.longitude || null
+                        }
+                    )
                 });
                 const reader = response.body?.getReader();
                 const decoder = new TextDecoder();

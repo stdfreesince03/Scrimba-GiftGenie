@@ -19,7 +19,19 @@ app.use(express.json());
 
 app.post('/api/ai', async (req, res) => {
    try{
-      const {prompt} = req.body;
+      const {prompt,lat,lon} = req.body;
+
+      let location;
+      if(lat && lon){
+         const locationResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,{
+           headers:{
+              "User-Agent" : "randomemail@gmail.com"
+           }
+         });
+         if(locationResponse.ok){
+            location = await locationResponse.json();
+         }
+      }
       const stream = await aiClient.responses.create({
          model:process.env.AI_MODEL || "gpt-4o-mini",
          input:[
@@ -34,11 +46,14 @@ app.post('/api/ai', async (req, res) => {
          ],
          tools:[{
             type:"web_search",
-            user_location:{
-               type:"approximate",
-               country:"ID",
-               city:"Jakarta"
-            }
+            ...(location && location.address && {
+               user_location:{
+                  type:"approximate",
+                  country: location.address.country_code.toUpperCase(),
+                  city:location.address.city || location.address.town || location.address.village,
+                  region:location.address.state
+               }
+            })
          }],
          stream:true
       });
