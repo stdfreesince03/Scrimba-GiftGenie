@@ -59,6 +59,7 @@ app.post('/api/ai', async (req, res) => {
       });
 
       for await (const chunk of stream){
+         console.log(chunk);
          if(chunk.type === 'response.output_text.delta'){
             res.write(chunk.delta);
          }
