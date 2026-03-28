@@ -1,5 +1,7 @@
 # Gift Genie
 
+![Gift Genie GIF](./assets/gift-genie.gif)
+
 Gift Genie is a Scrimba AI Engineer Path project that generates gift ideas from a short profile (interests, occasion, budget, and preferences).
 
 The project has two apps:
