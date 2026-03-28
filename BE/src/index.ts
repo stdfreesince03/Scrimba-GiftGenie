@@ -60,9 +60,24 @@ app.post('/api/ai', async (req, res) => {
 
       for await (const chunk of stream){
          console.log(chunk);
-         if(chunk.type === 'response.output_text.delta'){
-            res.write(chunk.delta);
+         const sent:{type:string;content:string}= {type:chunk.type,content:""};
+         if(chunk.type !== "response.output_text.done" &&
+             chunk.type !== "response.output_text.delta" &&
+             chunk.type !== "response.output_item.done" &&
+             chunk.type !== "response.in_progress"
+         ){
+            continue;
          }
+         if(chunk.type === 'response.output_text.delta'){
+            sent.content = chunk.delta;
+         }else if (
+             chunk.type === 'response.output_item.done' &&
+             "action" in chunk.item && chunk.item?.action &&
+             'query' in chunk.item.action
+         ) {
+            sent.content = (chunk.item.action as { query: string }).query;
+         }
+         res.write(JSON.stringify(sent)+"\n");
       }
 
       res.status(200).end();

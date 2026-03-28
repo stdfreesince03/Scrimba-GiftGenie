@@ -5,10 +5,13 @@ import {useCallback, useRef, useState} from "react";
 import { motion } from "motion/react";
 import AIResponse from "./components/AIResponse.tsx";
 import LoadingDots from "./components/LoadingDots.tsx";
+import type {StatusText} from "./constants/statusText.ts";
+
 
 function App() {
     const [prompt,setPrompt] = useState<string>('');
     const [isRubbed,setIsRubbed] = useState<boolean>(false);
+    const [statusText, setStatusText] = useState<StatusText>({type:"",msg:"Rub The Lamp",dot:false});
     const lastPromptRef = useRef<string>("");
 
     function handleClick(){
@@ -18,6 +21,15 @@ function App() {
         if(trimmed === lastPromptRef.current) return;
         lastPromptRef.current = trimmed;
         setIsRubbed(true);
+    }
+
+    function updateStatusText(newStatusText:StatusText){
+        setStatusText((prev) => {
+            if (prev.type === newStatusText.type && prev.msg === newStatusText.msg && prev.dot === newStatusText.dot) {
+                return prev;
+            }
+            return newStatusText;
+        });
     }
 
     const handleFinish = useCallback(()=>{
@@ -44,7 +56,7 @@ function App() {
                 </section>
                 <section className="flex flex-col gap-1 items-center w-full">
                     <button
-                        className={"w-1/3 sm:w-1/4 lg:w-1/5"}
+                        className={"w-1/3  lg:w-1/5"}
                         onClick={handleClick}
                     >
                         {!isRubbed && <img src={lamp}
@@ -58,7 +70,7 @@ function App() {
                             animate={
                                 isRubbed
                                     ? {
-                                        scale: [1, 1.35, 1],
+                                        scale: [1, 1.2, 1],
                                         x: [0, -10, 10, -10, 10, 0],
                                         rotate: [0, -20, 20, -20, 20, 0],
                                         filter: [
@@ -88,35 +100,27 @@ function App() {
                         />}
                     </button>
                     <div className={"flex flex-row items-end"}>
-                        {!isRubbed &&
+                        {statusText && statusText.msg &&
                             <p className="text-gray-400 text-xl font-bold rub-text">
-                                Rub the Lamp
+                                {statusText.msg}
                             </p>
                         }
-                        {isRubbed &&  <p className="text-gray-400 text-xl font-bold rub-text">
-                            Searching For the Best Gifts
-                        </p> }
-                        {isRubbed && <div className={"flex flex-col"}>
+                        {statusText && statusText.dot && <div className={"flex flex-col"}>
                             <LoadingDots></LoadingDots>
                         </div>}
                     </div>
 
                 </section>
                 <section className="w-full flex flex-row justify-center">
-                    <AIResponse isRubbed={isRubbed}
-                                onFinish={handleFinish}
-                                prompt={prompt}></AIResponse>
+                    <AIResponse
+                        isRubbed={isRubbed}
+                        onFinish={handleFinish}
+                        prompt={prompt}
+                        updateStatus={updateStatusText}
+                    />
                 </section>
             </div>
         </main>
-        // <main className={"w-full"}>
-        //     <section className="w-full flex flex-row justify-center items-center">
-        //         <img src={genie} alt="Genie Logo" className="w-[22.5%] sm:w-[9%] lg:w-[6.5%] genie-svg"/>
-        //         <h1 className="font-poppins font-extrabold text-5xl text-white
-        //         text-shadow-white text-shadow-xl app-title">Gift Genie</h1>
-        //     </section>
-
-        // </main>
     )
 }
 
